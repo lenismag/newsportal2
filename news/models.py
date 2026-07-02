@@ -35,13 +35,15 @@ class Category(models.Model):
         return self.name
 
 class Post(models.Model):
-    """Модель статьи или новости."""
-    TYPE_CHOICES = [
-        ('article', 'Статья'),
-        ('news', 'Новость'),
+    ARTICLE = 'article'
+    NEWS = 'news'
+
+    POST_TYPES = [
+        (ARTICLE, 'Статья'),
+        (NEWS, 'Новость'),
     ]
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
-    type = models.CharField(max_length=10, choices=TYPE_CHOICES)
+    type = models.CharField(max_length=10, choices=POST_TYPES)
     created_at = models.DateTimeField(auto_now_add=True)
     categories = models.ManyToManyField(Category, through='PostCategory')
     title = models.CharField(max_length=200)
