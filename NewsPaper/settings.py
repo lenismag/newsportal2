@@ -39,6 +39,11 @@ INSTALLED_APPS = [
     'news',
     'accounts',
     'django_filters',
+    'django.contrib.sites',  # обязательно для allauth
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.yandex',
 ]
 
 MIDDLEWARE = [
@@ -49,6 +54,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'NewsPaper.urls'
@@ -119,3 +125,20 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 LOGIN_URL = '/admin/login/'
+
+# Настройки allauth
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+SITE_ID = 1
+
+LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = '/news/'
+LOGOUT_REDIRECT_URL = '/news/'
+ACCOUNT_LOGOUT_REDIRECT_URL = '/news/'
+ACCOUNT_SIGNUP_REDIRECT_URL = '/news/'
+
+ACCOUNT_EMAIL_VERIFICATION = 'none'  # для упрощения
+ACCOUNT_SIGNUP_FIELDS = ['username*', 'password1*', 'password2*']
