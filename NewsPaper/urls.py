@@ -4,4 +4,5 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('news/', include('news.urls')),   # всё, что начинается с /news/ — в news.urls
+    path('articles/', include('news.urls_articles')),
 ]
