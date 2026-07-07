@@ -11,4 +11,36 @@
     {{ post.text|censor|linebreaks }}
 </div>
 <hr>
+<p>Категории:
+    {% for category in post.categories.all %}
+        {{ category.name }}
+        {% if user.is_authenticated %}
+            <button class="subscribe-btn" data-category="{{ category.pk }}">
+                {% if user in category.subscribers.all %}
+                    Отписаться
+                {% else %}
+                    Подписаться
+                {% endif %}
+            </button>
+        {% endif %}
+        {% if not forloop.last %}, {% endif %}
+    {% endfor %}
+</p>
 {% endblock %}
+<script>
+document.querySelectorAll('.subscribe-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const categoryId = this.dataset.category;
+        fetch(`/news/category/${categoryId}/subscribe/`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            this.textContent = data.subscribed ? 'Отписаться' : 'Подписаться';
+        });
+    });
+});
+</script>

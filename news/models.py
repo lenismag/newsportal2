@@ -1,6 +1,13 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+class Category(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    subscribers = models.ManyToManyField(User, blank=True, related_name='subscribed_categories')
+
+    def __str__(self):
+        return self.name
+
 class Author(models.Model):
     """Модель автора, связана с пользователем один-к-одному."""
     user = models.OneToOneField(User, on_delete=models.CASCADE)

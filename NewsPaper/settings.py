@@ -142,3 +142,12 @@ ACCOUNT_SIGNUP_REDIRECT_URL = '/news/'
 
 ACCOUNT_EMAIL_VERIFICATION = 'none'  # для упрощения
 ACCOUNT_SIGNUP_FIELDS = ['username*', 'password1*', 'password2*']
+
+# Email settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.yandex.ru'  # или smtp.gmail.com
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = 'твой_email@yandex.ru'  # замени на свой
+EMAIL_HOST_PASSWORD = 'пароль_приложения'  # пароль приложения, а не от почты
+DEFAULT_FROM_EMAIL = 'твой_email@yandex.ru'

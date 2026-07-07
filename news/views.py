@@ -2,7 +2,6 @@ from django.shortcuts import render, redirect
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib import messages
 from django.contrib.auth.models import Group
@@ -10,6 +9,24 @@ from django_filters.views import FilterView
 from .models import Post, Author, Category
 from .forms import PostForm
 from .filters import PostFilter
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+
+
+@login_required
+def subscribe_to_category(request, category_id):
+    category = get_object_or_404(Category, pk=category_id)
+    user = request.user
+
+    if user in category.subscribers.all():
+        category.subscribers.remove(user)
+        subscribed = False
+    else:
+        category.subscribers.add(user)
+        subscribed = True
+
+    return JsonResponse({'subscribed': subscribed})
 
 
 class AuthorRequiredMixin(PermissionRequiredMixin):
