@@ -1,16 +1,15 @@
 {% extends 'default.html' %}
 {% load custom_filters %}
-
-{% block title %}{{ post.title }}{% endblock %}
+{% load cache %}
 
 {% block content %}
+<!-- Кэшируем статью, пока она не изменится -->
+{% cache 2592000 post_cache post.pk post.rating %}
 <h2>{{ post.title|censor }}</h2>
 <p>Дата публикации: {{ post.created_at|date:"d.m.Y" }}</p>
-<hr>
-<div>
-    {{ post.text|censor|linebreaks }}
-</div>
-<hr>
+<p>Автор: {{ post.author.user.username }}</p>
+<p>Рейтинг: {{ post.rating }}</p>
+
 <p>Категории:
     {% for category in post.categories.all %}
         {{ category.name }}
@@ -26,21 +25,14 @@
         {% if not forloop.last %}, {% endif %}
     {% endfor %}
 </p>
+<hr>
+<div>
+    {{ post.text|censor|linebreaks }}
+</div>
+{% endcache %}
+<!-- Конец кэша статьи -->
+
+<hr>
+<h3>Комментарии</h3>
+<!-- Комментарии НЕ кэшируем, они могут меняться -->
 {% endblock %}
-<script>
-document.querySelectorAll('.subscribe-btn').forEach(button => {
-    button.addEventListener('click', function() {
-        const categoryId = this.dataset.category;
-        fetch(`/news/category/${categoryId}/subscribe/`, {
-            method: 'GET',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            this.textContent = data.subscribed ? 'Отписаться' : 'Подписаться';
-        });
-    });
-});
-</script>

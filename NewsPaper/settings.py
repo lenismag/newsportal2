@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -47,6 +48,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -55,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'django.middleware.cache.FetchFromCacheMiddleware',
 ]
 
 ROOT_URLCONF = 'NewsPaper.urls'
@@ -140,17 +143,21 @@ LOGOUT_REDIRECT_URL = '/news/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/news/'
 ACCOUNT_SIGNUP_REDIRECT_URL = '/news/'
 
-ACCOUNT_EMAIL_VERIFICATION = 'none'  # для упрощения
+ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_SIGNUP_FIELDS = ['username*', 'password1*', 'password2*']
+
+ADMINS = [
+    ('Admin', 'lenismag@yandex.ru'),  # замени на свой email
+]
 
 # Email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.yandex.ru'  # или smtp.gmail.com
+EMAIL_HOST = 'smtp.yandex.ru'
 EMAIL_PORT = 465
 EMAIL_USE_SSL = True
-EMAIL_HOST_USER = 'твой_email@yandex.ru'  # замени на свой
-EMAIL_HOST_PASSWORD = 'пароль_приложения'  # пароль приложения, а не от почты
-DEFAULT_FROM_EMAIL = 'твой_email@yandex.ru'
+EMAIL_HOST_USER = 'lenismag@yandex.ru'
+EMAIL_HOST_PASSWORD = 'admin'
+DEFAULT_FROM_EMAIL = 'lenismag@yandex.ru'
 
 # Celery settings
 CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
@@ -160,3 +167,165 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Europe/Moscow'
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': BASE_DIR / 'cache',  # папка для кэша
+    }
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+
+    # ==================== ФОРМАТЫ ====================
+    'formatters': {
+        # Для консоли (DEBUG и выше)
+        'console_debug': {
+            'format': '{asctime} {levelname} {message}',
+            'style': '{',
+        },
+        # Для консоли (WARNING и выше)
+        'console_warning': {
+            'format': '{asctime} {levelname} {pathname} {message}',
+            'style': '{',
+        },
+        # Для консоли (ERROR и CRITICAL)
+        'console_error': {
+            'format': '{asctime} {levelname} {pathname} {message}',
+            'style': '{',
+        },
+        # Для general.log
+        'general': {
+            'format': '{asctime} {levelname} {module} {message}',
+            'style': '{',
+        },
+        # Для errors.log
+        'errors': {
+            'format': '{asctime} {levelname} {message} {pathname}',
+            'style': '{',
+        },
+        # Для security.log
+        'security': {
+            'format': '{asctime} {levelname} {module} {message}',
+            'style': '{',
+        },
+        # Для почты (как errors.log, но без стека)
+        'mail': {
+            'format': '{asctime} {levelname} {message} {pathname}',
+            'style': '{',
+        },
+    },
+
+    # ==================== ФИЛЬТРЫ ====================
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+    },
+
+    # ==================== ОБРАБОТЧИКИ ====================
+    'handlers': {
+        # Консоль (только DEBUG = True)
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'console_debug',
+            'filters': ['require_debug_true'],
+        },
+        'console_warning': {
+            'level': 'WARNING',
+            'class': 'logging.StreamHandler',
+            'formatter': 'console_warning',
+            'filters': ['require_debug_true'],
+        },
+        'console_error': {
+            'level': 'ERROR',
+            'class': 'logging.StreamHandler',
+            'formatter': 'console_error',
+            'filters': ['require_debug_true'],
+        },
+
+        # Файл general.log (только DEBUG = False)
+        'general': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'general.log'),
+            'formatter': 'general',
+            'filters': ['require_debug_false'],
+        },
+
+        # Файл errors.log
+        'errors': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'errors.log'),
+            'formatter': 'errors',
+        },
+
+        # Файл security.log
+        'security': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'security.log'),
+            'formatter': 'security',
+        },
+
+        # Почта (только DEBUG = False)
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'formatter': 'mail',
+            'filters': ['require_debug_false'],
+        },
+    },
+
+    # ==================== ЛОГГЕРЫ ====================
+    'loggers': {
+        # Основной логгер Django
+        'django': {
+            'handlers': ['console', 'console_warning', 'console_error', 'general'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+
+        # Логгер для запросов
+        'django.request': {
+            'handlers': ['errors', 'mail_admins'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+
+        # Логгер для сервера
+        'django.server': {
+            'handlers': ['errors', 'mail_admins'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+
+        # Логгер для шаблонов
+        'django.template': {
+            'handlers': ['errors'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+
+        # Логгер для базы данных
+        'django.db.backends': {
+            'handlers': ['errors'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+
+        # Логгер для безопасности
+        'django.security': {
+            'handlers': ['security'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}

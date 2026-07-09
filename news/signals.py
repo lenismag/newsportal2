@@ -1,9 +1,18 @@
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 from allauth.account.signals import user_signed_up
 from .models import Post
 from .tasks import send_notification, send_welcome_email
 from datetime import datetime
+from django.core.cache import cache
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+@receiver(post_save, sender=Post)
+def clear_post_cache(sender, instance, **kwargs):
+    """Сброс кэша при изменении статьи"""
+    # Сбрасываем кэш для конкретной статьи
+    cache.delete(f'post_cache_{instance.pk}_{instance.rating}')
+    # Сбрасываем кэш страницы со списком
+    cache.clear()  # или более точечно
 
 
 @receiver(user_signed_up)
